@@ -1,1176 +1,892 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>브릿지 커피 단골 적립</title>
-<style>
-/* ===================================================================
-   [1] 기본 설정 — 글꼴, 배경, 여백
-   =================================================================== */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* 휴대폰에서 글자 크기가 제멋대로 커지지 않게, 좌우로 밀리지 않게 */
-html {
-  overflow-x: hidden;
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body {
-  /* 고운 돋움을 먼저 쓰고, 없으면 맑은 고딕을 씁니다 */
-  font-family: '고운돋움', 'Gowun Dodum', '맑은 고딕', 'Malgun Gothic', sans-serif;
-
-  /* 배경을 부드러운 커피색 그라데이션으로 */
-  background: linear-gradient(160deg, #6b4b3a 0%, #a8785c 45%, #d9b08c 100%);
-  background-attachment: fixed;
-
-  min-height: 100vh;
-  min-height: 100dvh;           /* 휴대폰 주소창이 오르내려도 화면이 안 흔들리게 */
-  color: #3d2b1f;
-  overflow-x: hidden;           /* 좌우 스크롤이 생기지 않게 */
-  display: flex;
-  justify-content: center;
-
-  /* 아이폰 아래쪽 가로줄에 버튼이 가리지 않게 여백을 더해 줍니다 */
-  padding: 24px 16px calc(40px + env(safe-area-inset-bottom));
-}
-
-/* 배경에 떠 있는 흐릿한 빛 덩어리 (유리 느낌을 살려 줍니다) */
-.빛덩어리 {
-  position: fixed;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.55;
-  z-index: 0;
-  pointer-events: none;
-}
-.빛덩어리.하나 { width: 260px; height: 260px; background: #ffd9a0; top: -60px; left: -70px; }
-.빛덩어리.둘   { width: 240px; height: 240px; background: #ff9d6c; bottom: 40px; right: -80px; }
-.빛덩어리.셋   { width: 200px; height: 200px; background: #fff3e0; top: 45%; left: 50%; transform: translateX(-50%); }
-
-/* 휴대폰 화면 크기에 맞춘 전체 틀 */
-.화면틀 {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 420px;
-}
-
-/* ===================================================================
-   [2] 유리 카드 — 반투명 + 부드러운 그림자 + 둥근 모서리
-   =================================================================== */
-
-.유리카드 {
-  background: rgba(255, 255, 255, 0.22);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 26px;
-  box-shadow: 0 10px 32px rgba(70, 40, 20, 0.22);
-  padding: 26px 22px;
-  margin-bottom: 18px;
-}
-
-/* ===================================================================
-   [3] 맨 위 — 가게 이름과 안내
-   =================================================================== */
-
-.가게머리 {
-  text-align: center;
-  padding: 30px 22px 26px;
-}
-
-.가게아이콘 {
-  font-size: 42px;
-  line-height: 1;
-  margin-bottom: 10px;
-}
-
-.가게이름 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: -0.5px;
-  text-shadow: 0 2px 10px rgba(80, 45, 20, 0.35);
-  margin-bottom: 8px;
-}
-
-.가게안내 {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.6;
-  text-shadow: 0 1px 6px rgba(80, 45, 20, 0.3);
-}
-
-.가게줄 {
-  width: 46px;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 3px;
-  margin: 14px auto 12px;
-}
-
-/* ===================================================================
-   [4] 번호 입력 칸과 버튼
-   =================================================================== */
-
-.칸이름 {
-  display: block;
-  font-size: 16px;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 1px 6px rgba(80, 45, 20, 0.3);
-  margin-bottom: 6px;
-  text-align: center;
-}
-
-.칸설명 {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
-  text-align: center;
-  margin-bottom: 16px;
-  line-height: 1.5;
-}
-
-.번호입력 {
-  width: 100%;
-  height: 62px;
-  font-family: inherit;
-  font-size: 30px;
-  font-weight: 700;
-  text-align: center;
-  letter-spacing: 12px;
-  text-indent: 12px;          /* 글자 사이 간격 때문에 오른쪽으로 밀리는 것을 잡아 줍니다 */
-  color: #4a3323;
-  background: rgba(255, 255, 255, 0.55);
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  border-radius: 18px;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-}
-
-.번호입력::placeholder {
-  font-size: 17px;
-  letter-spacing: 0;
-  text-indent: 0;
-  font-weight: 400;
-  color: rgba(90, 65, 45, 0.5);
-}
-
-.번호입력:focus {
-  border-color: #ffffff;
-  background: rgba(255, 255, 255, 0.75);
-}
-
-/* 큰 버튼 — 손가락으로 누르기 편하게 */
-.큰버튼 {
-  width: 100%;
-  min-height: 58px;
-  margin-top: 14px;
-  font-family: inherit;
-  font-size: 18px;
-  font-weight: 700;
-  color: #5a3b26;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 18px;
-  box-shadow: 0 6px 18px rgba(70, 40, 20, 0.22);
-  cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.12s;
-}
-
-.큰버튼:active {
-  transform: scale(0.97);
-  box-shadow: 0 3px 10px rgba(70, 40, 20, 0.2);
-}
-
-/* 연한 버튼 (다시 조회하기 등) */
-.연한버튼 {
-  background: rgba(255, 255, 255, 0.28);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  text-shadow: 0 1px 4px rgba(80, 45, 20, 0.3);
-}
-
-/* 잘못 입력했을 때 나오는 빨간 안내 */
-.오류말 {
-  display: none;
-  margin-top: 12px;
-  padding: 11px 14px;
-  font-size: 14px;
-  line-height: 1.5;
-  text-align: center;
-  color: #7d2b2b;
-  background: rgba(255, 226, 226, 0.8);
-  border: 1px solid rgba(255, 160, 160, 0.7);
-  border-radius: 14px;
-}
-
-.오류말.보임 {
-  display: block;
-  animation: 흔들기 0.35s;
-}
-
-@keyframes 흔들기 {
-  0%, 100% { transform: translateX(0); }
-  25%      { transform: translateX(-6px); }
-  75%      { transform: translateX(6px); }
-}
-
-/* ===================================================================
-   [5] 이름 고르기 — 뒷 4자리가 같은 손님이 여러 명일 때
-   =================================================================== */
-
-.고르기제목 {
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
-  text-align: center;
-  text-shadow: 0 1px 6px rgba(80, 45, 20, 0.3);
-  margin-bottom: 6px;
-}
-
-.고르기설명 {
-  font-size: 13.5px;
-  color: rgba(255, 255, 255, 0.88);
-  text-align: center;
-  line-height: 1.6;
-  margin-bottom: 16px;
-}
-
-.이름버튼 {
-  width: 100%;
-  min-height: 56px;
-  margin-bottom: 10px;
-  font-family: inherit;
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #5a3b26;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(70, 40, 20, 0.18);
-  cursor: pointer;
-  transition: transform 0.12s;
-}
-
-.이름버튼:active { transform: scale(0.97); }
-
-/* ===================================================================
-   [6] 스탬프 동그라미 10개
-   =================================================================== */
-
-.손님이름 {
-  text-align: center;
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 1px 6px rgba(80, 45, 20, 0.3);
-  margin-bottom: 20px;
-}
-
-.손님이름 .작은글씨 {
-  font-size: 14px;
-  font-weight: 400;
-  opacity: 0.9;
-}
-
-/* 한 줄에 5개씩, 두 줄로 놓습니다 */
-.스탬프판 {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px 10px;
-  margin-bottom: 22px;
-}
-
-.동그라미 {
-  aspect-ratio: 1 / 1;        /* 가로세로 길이를 같게 해서 정확한 동그라미로 */
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 21px;
-  transition: all 0.3s;
-}
-
-/* 아직 안 모은 동그라미 — 비어 있음 */
-.동그라미.빈칸 {
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px dashed rgba(255, 255, 255, 0.55);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-/* 다 모은 동그라미 — 색이 꽉 참 */
-.동그라미.채움 {
-  background: linear-gradient(145deg, #ffe6b8, #f0a868);
-  border: 2px solid rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 12px rgba(120, 60, 20, 0.3);
-  animation: 톡올라오기 0.4s backwards;
-}
-
-@keyframes 톡올라오기 {
-  0%   { transform: scale(0.3); opacity: 0; }
-  60%  { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
-}
-
-/* 안내 문구 (3개 모았어요! …) */
-.모은개수말 {
-  text-align: center;
-  font-size: 19px;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.6;
-  text-shadow: 0 1px 8px rgba(80, 45, 20, 0.35);
-  margin-bottom: 6px;
-}
-
-.모은개수말 .강조 {
-  color: #fff0d2;
-  font-size: 23px;
-}
-
-.남은개수말 {
-  text-align: center;
-  font-size: 14.5px;
-  color: rgba(255, 255, 255, 0.9);
-  line-height: 1.6;
-}
-
-/* 얼마나 찼는지 보여 주는 막대 */
-.진행막대 {
-  height: 10px;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 10px;
-  overflow: hidden;
-  margin: 18px 0 8px;
-}
-
-.진행막대 .채워진부분 {
-  height: 100%;
-  width: 0;
-  background: linear-gradient(90deg, #ffe6b8, #f0a868);
-  border-radius: 10px;
-  transition: width 0.8s ease-out;
-}
-
-/* ===================================================================
-   [7] 10개를 다 모았을 때 나오는 축하 화면
-   =================================================================== */
-
-.축하카드 {
-  text-align: center;
-  background: rgba(255, 255, 255, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  padding: 34px 22px;
-}
-
-.축하아이콘 {
-  font-size: 56px;
-  line-height: 1;
-  margin-bottom: 14px;
-  animation: 살짝통통 2.2s ease-in-out infinite;   /* 아주 천천히 위아래로 */
-}
-
-@keyframes 살짝통통 {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-7px); }
-}
-
-.축하제목 {
-  font-size: 27px;
-  font-weight: 700;
-  color: #ffffff;
-  text-shadow: 0 2px 12px rgba(80, 45, 20, 0.4);
-  line-height: 1.45;
-  margin-bottom: 10px;
-}
-
-.축하설명 {
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
-  line-height: 1.7;
-  text-shadow: 0 1px 6px rgba(80, 45, 20, 0.3);
-}
-
-/* --- 무료 음료 교환권 (쿠폰처럼 생긴 부분) --- */
-
-.교환권 {
-  margin-top: 22px;
-  padding: 20px 18px 18px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 2px dashed rgba(150, 110, 80, 0.4);
-  border-radius: 20px;
-}
-
-.교환권이름 {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #7a5236;
-}
-
-.교환권컵 {
-  font-size: 40px;
-  line-height: 1;
-  margin: 10px 0 4px;
-}
-
-.교환권점선 {
-  border-top: 2px dashed rgba(150, 110, 80, 0.35);
-  margin: 14px 0 16px;
-}
-
-/* 교환권 안에 들어가는 스탬프는 조금 작게 */
-.교환권 .스탬프판 {
-  gap: 8px 7px;
-  margin-bottom: 12px;
-}
-
-.교환권 .동그라미 {
-  font-size: 17px;
-}
-
-.교환권개수 {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #8a6242;
-}
-
-/* --- 사장님께 보여 달라는 안내 --- */
-
-.사장님안내 {
-  margin-top: 18px;
-  padding: 15px 16px;
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.6;
-  color: #5a3b26;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(70, 40, 20, 0.18);
-}
-
-/* --- 화면 캡처 관련 안내 (조금 작은 글씨) --- */
-
-.캡처안내 {
-  margin-top: 12px;
-  padding: 13px 14px;
-  font-size: 13px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(90, 55, 35, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 14px;
-  text-shadow: 0 1px 4px rgba(60, 35, 15, 0.35);
-}
-
-/* 축하 화면에서 떨어지는 색종이 조각 */
-.색종이 {
-  position: fixed;
-  top: -20px;
-  width: 8px;
-  height: 11px;
-  opacity: 0.75;
-  z-index: 5;
-  pointer-events: none;
-  animation: 떨어지기 linear forwards;
-}
-
-@keyframes 떨어지기 {
-  0%   { transform: translateY(0) rotate(0deg); opacity: 0.75; }
-  100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
-}
-
-/* ===================================================================
-   [8] 화면 바꾸기 — 지금 보여 줄 화면 하나만 보이게
-   =================================================================== */
-
-.화면 { display: none; }
-.화면.보임 {
-  display: block;
-  animation: 스르륵 0.4s;
-}
-
-@keyframes 스르륵 {
-  0%   { opacity: 0; transform: translateY(14px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-/* 맨 아래 안내 */
-.맨아래말 {
-  text-align: center;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.7;
-  margin-top: 6px;
-}
-
-/* 자동으로 첫 화면으로 돌아간다는 안내 (남은 시간을 보여 줍니다) */
-.자동안내 {
-  display: none;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(90, 55, 35, 0.28);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 14px;
-  padding: 11px 14px;
-  margin-top: 4px;
-  text-shadow: 0 1px 4px rgba(60, 35, 15, 0.35);
-}
-
-.자동안내.보임 { display: block; }
-
-.자동안내 .작은안내 {
-  font-size: 12px;
-  opacity: 0.85;
-}
-
-/* 개인정보 안내 — 작지만 또렷하게 읽히도록 */
-.개인정보안내 {
-  margin-top: 14px;
-  padding: 13px 15px;
-  background: rgba(90, 55, 35, 0.24);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  border-radius: 14px;
-}
-
-.개인정보안내 .안내제목 {
-  font-size: 12px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 6px;
-  letter-spacing: 0.3px;
-}
-
-.개인정보안내 ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.개인정보안내 li {
-  position: relative;
-  padding-left: 11px;
-  font-size: 12px;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.개인정보안내 li::before {
-  content: '·';
-  position: absolute;
-  left: 2px;
-}
-
-/* 화면이 아주 작은 휴대폰에서 글자 크기를 조금 줄입니다 */
-@media (max-width: 340px) {
-  .가게이름   { font-size: 24px; }
-  .번호입력   { font-size: 25px; letter-spacing: 9px; text-indent: 9px; }
-  .모은개수말 { font-size: 17px; }
-  .스탬프판   { gap: 9px 7px; }
-
-  /* 카드 안쪽 여백을 조금 줄여 동그라미를 더 크게 보여 줍니다 */
-  .유리카드     { padding: 22px 16px; }
-  .가게머리     { padding: 26px 16px 22px; }
-  .축하카드     { padding: 30px 16px; }
-  .교환권       { padding: 18px 13px 16px; }
-
-  /* 글자가 두 줄로 넘어가지 않도록 살짝 줄입니다 */
-  .큰버튼       { font-size: 17px; }
-  .사장님안내   { font-size: 14.5px; }
-  .고르기제목   { font-size: 16px; }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>풀문지카페 단골 적립</title>
+
+  <script>
+    /* ==========================================================================
+       ★★★ 고치는 곳은 여기 한곳에 모아 두었어요 ★★★
+       이 파일의 다른 곳은 건드리지 않아도 돼요.
+
+       ⚠️ 중요: 아래 '예시 손님'은 화면을 보기 위한 가짜 번호예요.
+          진짜 손님의 전화번호는 이 파일에 적지 마세요!
+          이 파일을 인터넷(GitHub 등)에 올리면 누구나 볼 수 있어요.
+       ========================================================================== */
+
+    // 가게 이름 (화면 맨 위에 나와요)
+    const SHOP_NAME = "풀문지카페";
+
+    // 스탬프를 몇 개 모으면 보상을 주는지 (동그라미 개수도 이 숫자를 따라가요)
+    // ※ 10 그대로 두는 걸 추천해요. 바꾸면 동그라미 배치가 달라질 수 있어요.
+    const STAMP_GOAL = 10;
+
+    // 보상 이름 ('7개 더 모으면 ○○' 자리에 들어가요)
+    const REWARD = "무료 음료";
+
+    // 처음 온 손님(저장된 기록이 하나도 없는 번호)에게 스탬프 위에 보여주는 환영 문구
+    // 첫 줄은 큰 글씨, 둘째 줄은 작은 글씨예요. 따옴표(" ")는 지우지 마세요.
+    const WELCOME_TITLE = "처음 오셨네요! " + SHOP_NAME + "에 오신 걸 환영해요 🌕";
+    const WELCOME_SUB = "스탬프 " + STAMP_GOAL + "개를 모으면 " + REWARD + "를 드려요.";
+
+    // ───────────── 관리자 비밀번호 (숫자 4자리) ─────────────
+    // 화면 맨 아래 '관리자' 버튼을 눌렀을 때 입력하는 번호예요.
+    // 이 번호가 있어야 스탬프를 찍거나 지울 수 있어요.
+    // ★ 꼭 다른 번호로 바꿔서 쓰세요! (코드를 열어보면 보이는 번호라서, 가게 안에서만 쓰는 용도예요)
+    const OWNER_PIN = "7531";
+
+    // 스탬프 기록이 저장되는 이름표 (가게 기기 안에서 구분하는 이름이에요. 바꾸지 않아도 돼요)
+    const STORAGE_KEY = "fullmoon-stamps-v1";
+
+    // ───────────── 구글 시트 주소 (가장 중요!) ─────────────
+    // 구글 시트에서 '웹 앱으로 배포'를 하면 나오는 긴 주소를 따옴표 안에 붙여 넣으세요.
+    //   예) "https://script.google.com/macros/s/XXXXXXXX/exec"
+    // ▶ 주소를 넣으면: 스탬프를 구글 시트에서 읽어와요. (어느 휴대폰으로 봐도 내 스탬프가 보여요!)
+    //   이때는 연습용 예시 손님과 안내 문구는 저절로 꺼져요.
+    // ▶ 비워 두면(""): 지금처럼 이 기기 안의 기록만 읽어요. (연습용)
+    // ※ 관리자 화면(admin.html)의 SHEET_URL 에도 똑같은 주소를 넣어야 해요!
+    const SHEET_URL = "";
+
+    // 손님 화면 맨 아래에 '관리자' 입구를 보여줄지: true = 보여줌, false = 숨김
+    // 스탬프를 찍는 일은 이제 admin.html 에서 해요. 손님에게는 숨기는 걸 추천해요.
+    const SHOW_OWNER_LINK = false;
+
+    // 손님이 QR로 열었을 때도 '번호 입력 화면'을 보여줄지: false = 안내만 보여줌 (추천), true = 번호 입력 화면도 보여줌
+    // ※ 스탬프 기록은 사장님 휴대폰에만 있어서, 손님 휴대폰에서 번호를 넣어도 기록이 안 보여요.
+    //   그래서 손님에게는 안내만 보여주고, 사장님 휴대폰의 관리자 화면(admin.html)에서
+    //   '손님 확인 화면 열기'를 눌러 들어올 때만 번호 입력 화면이 열려요.
+    const ALWAYS_SHOW_LOOKUP = false;
+
+    // 연습용 안내 문구와 예시 손님을 쓸지: true = 사용, false = 사용 안 함
+    // (진짜로 손님에게 보여줄 때는 false 로 바꾸세요)
+    const SHOW_DEMO_NOTE = true;
+
+    // ───────────── 예시 손님 (연습용 가짜 번호!) ─────────────
+    // 모양:  "휴대폰 뒤 4자리": 스탬프 개수,
+    // 위 SHOW_DEMO_NOTE 가 true 일 때만 쓰여요. (사장님이 직접 찍은 기록이 있으면 그 기록이 먼저예요)
+    // 목록에 없는 번호는 '처음 오신 손님(0개)'으로 보여줘요.
+    const SAMPLE_CUSTOMERS = {
+      "1234": 3,    // 3개 모은 손님
+      "5678": 10,   // 10개 다 모은 손님 (축하 화면)
+      "0000": 0,    // 하나도 없는 손님
+      "9999": 7     // 7개 모은 손님
+    };
+  </script>
+
+  <style>
+    /* ===== 색깔 설정 (메뉴판과 같은 연두 + 크림) =====
+       [고치는 곳] 색을 바꾸고 싶으면 아래 #번호만 바꾸세요. */
+    :root {
+      --green-light: #C8E0B0;  /* 연한 연두: 배경 */
+      --green: #5E8B3F;        /* 진한 연두: 버튼, 채워진 스탬프 */
+      --cream: #F5EFE6;        /* 크림색: 카드 */
+      --ink: #2F3A25;          /* 글자색 */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      /* 글꼴: 고운 돋움 먼저, 없으면 맑은 고딕 */
+      font-family: "고운 돋움", "GowunDodum", "Gowun Dodum", "맑은 고딕", "Malgun Gothic", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.7) 0, transparent 40%),
+        radial-gradient(circle at 90% 35%, rgba(94, 139, 63, 0.28) 0, transparent 45%),
+        radial-gradient(circle at 10% 85%, rgba(200, 224, 176, 0.9) 0, transparent 50%),
+        linear-gradient(160deg, var(--green-light) 0%, #E3EDD3 50%, var(--cream) 100%);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 휴대폰 폭(390px) 기준의 가운데 영역 */
+    .wrap { max-width: 430px; margin: 0 auto; padding: 28px 18px 48px; }
+
+    /* ===== 유리 카드 (글래스모피즘) ===== */
+    .card {
+      background: rgba(245, 239, 230, 0.6);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(70, 100, 50, 0.16);
+      padding: 26px 22px;
+      margin-bottom: 18px;
+    }
+
+    /* ===== 1. 맨 위 ===== */
+    .header { text-align: center; }
+    .header h1 { font-size: 32px; letter-spacing: 1px; color: var(--green); }
+    .header .tag { margin-top: 8px; font-size: 18px; font-weight: bold; }
+    .header .guide { margin-top: 6px; font-size: 15px; opacity: 0.75; }
+
+    /* ===== 2. 번호 입력 ===== */
+    .form label { display: block; font-size: 17px; font-weight: bold; margin-bottom: 10px; }
+    .form input {
+      width: 100%;
+      min-height: 60px;
+      padding: 0 16px;
+      font-family: inherit;
+      font-size: 28px;
+      letter-spacing: 8px;
+      text-align: center;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(94, 139, 63, 0.4);
+      border-radius: 18px;
+    }
+    .form input:focus { outline: 3px solid rgba(94, 139, 63, 0.4); }
+    .form input::placeholder { letter-spacing: 2px; font-size: 17px; opacity: 0.5; }
+
+    .btn {
+      display: block;
+      width: 100%;
+      min-height: 56px;
+      margin-top: 14px;
+      font-family: inherit;
+      font-size: 19px;
+      font-weight: bold;
+      color: #fff;
+      background: var(--green);
+      border: none;
+      border-radius: 18px;
+      box-shadow: 0 8px 20px rgba(94, 139, 63, 0.4);
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .error { margin-top: 12px; min-height: 22px; font-size: 15px; font-weight: bold; color: #a33; text-align: center; }
+    /* 안내만 보여주는 화면(손님용)과 번호 입력 화면(사장님 휴대폰용)을 나눠요 */
+    .info-only { display: none; }
+    body.info-mode .info-only { display: block; }
+    body.info-mode .lookup-only { display: none !important; }
+
+    .back-admin {
+      display: none;
+      margin: 0 0 14px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: bold;
+      text-align: center;
+      text-decoration: none;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(94, 139, 63, 0.5);
+      border-radius: 16px;
+    }
+    .back-admin.show { display: block; }
+
+    .guide-card h2 { font-size: 20px; color: var(--green); text-align: center; margin-bottom: 14px; }
+    .guide-card ol { list-style: none; counter-reset: step; }
+    .guide-card li {
+      counter-increment: step;
+      position: relative;
+      padding: 12px 0 12px 48px;
+      font-size: 17px;
+      border-bottom: 1px solid rgba(94, 139, 63, 0.18);
+    }
+    .guide-card li:last-child { border-bottom: none; }
+    .guide-card li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 10px;
+      width: 34px;
+      height: 34px;
+      line-height: 34px;
+      text-align: center;
+      font-weight: bold;
+      color: #fff;
+      background: var(--green);
+      border-radius: 50%;
+    }
+    .guide-card .ask {
+      margin-top: 16px;
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: bold;
+      background: rgba(200, 224, 176, 0.55);
+      border-radius: 18px;
+    }
+
+    .privacy { margin: 14px 8px 0; font-size: 12px; line-height: 1.6; text-align: center; opacity: 0.6; }
+    .demo-note { margin-top: 10px; font-size: 13px; text-align: center; opacity: 0.6; }
+
+    /* ===== 3. 스탬프 카드 ===== */
+    #result { display: none; text-align: center; }
+    #result.show { display: block; animation: rise 0.4s ease; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+    /* 처음 온 손님을 위한 환영 말풍선 (스탬프 위에 나와요) */
+    .welcome {
+      display: none;
+      margin-bottom: 18px;
+      padding: 16px 14px;
+      background: rgba(200, 224, 176, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 20px;
+      box-shadow: 0 6px 16px rgba(94, 139, 63, 0.18);
+    }
+    .welcome.show { display: block; }
+    .welcome .w-title { font-size: 18px; font-weight: bold; color: var(--green); overflow-wrap: anywhere; }
+    .welcome .w-sub { margin-top: 4px; font-size: 15px; }
+
+    .count { font-size: 22px; font-weight: bold; }
+    .count b { color: var(--green); font-size: 30px; }
+
+    /* 동그라미: 한 줄에 5개씩 두 줄 */
+    .stamps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 22px auto 20px;
+      max-width: 340px;
+    }
+    .stamp {
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: rgba(47, 58, 37, 0.35);
+      background: rgba(255, 255, 255, 0.45);
+      border: 2px dashed rgba(94, 139, 63, 0.45);
+    }
+    /* 적립된 스탬프: 색이 채워져요 */
+    .stamp.filled {
+      color: #fff;
+      background: var(--green);
+      border: 2px solid var(--green);
+      box-shadow: 0 6px 14px rgba(94, 139, 63, 0.4);
+    }
+
+    .message { font-size: 18px; font-weight: bold; }
+    .message small { display: block; margin-top: 4px; font-size: 14px; font-weight: normal; opacity: 0.7; }
+
+    /* ===== 축하 화면 (10개를 다 모으면) ===== */
+    #celebrate {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(47, 58, 37, 0.45);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+    }
+    #celebrate.show { display: flex; }
+    .celebrate-card {
+      width: 100%;
+      max-width: 350px;
+      text-align: center;
+      background: rgba(245, 239, 230, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 28px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+      padding: 34px 24px 28px;
+      animation: pop 0.45s ease;
+    }
+    @keyframes pop { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: none; } }
+    .celebrate-card .big { font-size: 64px; line-height: 1.1; }
+    .celebrate-card h2 { margin-top: 10px; font-size: 26px; color: var(--green); }
+    .celebrate-card p { margin-top: 10px; font-size: 17px; }
+    .celebrate-card .hint { font-size: 14px; opacity: 0.7; }
+
+    /* 떨어지는 색종이 */
+    .confetti {
+      position: fixed;
+      top: -20px;
+      width: 10px;
+      height: 16px;
+      z-index: 60;
+      pointer-events: none;
+      animation: fall linear forwards;
+    }
+    @keyframes fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0.9; } }
+
+    /* 움직임이 불편한 분을 위해: 기기 설정에서 '움직임 줄이기'를 켜 두면 효과를 꺼요 */
+    @media (prefers-reduced-motion: reduce) {
+      #result.show, .celebrate-card { animation: none; }
+      .confetti { display: none; }
+    }
+
+    /* ===== 사장님 화면 ===== */
+    .owner-link {
+      display: block;
+      margin: 8px auto 0;
+      padding: 12px 20px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      opacity: 0.55;
+      background: none;
+      border: none;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+    .owner-box { display: none; }
+    .owner-box.show { display: block; }
+    .owner-box h2 { font-size: 20px; color: var(--green); margin-bottom: 14px; text-align: center; }
+    .owner-box .form-input input { letter-spacing: 8px; }
+
+    .btn.light {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(94, 139, 63, 0.5);
+      box-shadow: none;
+    }
+    .btn.warn { background: #b4584a; box-shadow: 0 8px 20px rgba(180, 88, 74, 0.35); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .btn-row .btn { margin-top: 14px; }
+
+    .owner-status { margin-top: 16px; min-height: 26px; font-size: 18px; font-weight: bold; text-align: center; }
+    .owner-msg { margin-top: 10px; min-height: 22px; font-size: 15px; text-align: center; font-weight: bold; color: var(--green); }
+    .owner-msg.bad { color: #a33; }
+    .owner-note { margin-top: 14px; font-size: 13px; line-height: 1.6; opacity: 0.7; text-align: center; }
+    .owner-sep { border: none; border-top: 1px solid rgba(94, 139, 63, 0.3); margin: 22px 0 6px; }
+    input[type="file"] { display: none; }
+
+    /* 가로 화면 등 높이가 낮을 때 축하 카드가 잘리지 않게 */
+    @media (max-height: 500px) {
+      #celebrate { align-items: flex-start; overflow-y: auto; }
+    }
+  </style>
 </head>
-<body>
 
-<!-- 배경에 떠 있는 흐릿한 빛 -->
-<div class="빛덩어리 하나"></div>
-<div class="빛덩어리 둘"></div>
-<div class="빛덩어리 셋"></div>
+<body class="info-mode">
+<!-- 처음에는 '안내만' 화면이에요. 사장님 휴대폰에서 들어온 경우에만 아래 스크립트가 번호 입력 화면으로 바꿔요. -->
+  <div class="wrap">
 
-<div class="화면틀">
+    <!-- 사장님 휴대폰에서 관리자 화면을 거쳐 들어왔을 때만 보이는 '돌아가기' 버튼 -->
+    <a class="back-admin" id="backAdmin" href="admin.html">← 관리자 화면으로 돌아가기</a>
 
-  <!-- ============ 맨 위 : 가게 이름 (항상 보임) ============ -->
-  <div class="유리카드 가게머리">
-    <div class="가게아이콘">☕</div>
-    <div class="가게이름">브릿지 커피</div>
-    <div class="가게줄"></div>
-    <div class="가게안내">
-      단골 적립<br>
-      음료 한 잔에 스탬프 하나! 10개를 모으면 무료 음료를 드려요.
+    <!-- ===== 1. 맨 위: 가게 이름과 '단골 적립' 안내 ===== -->
+    <header class="card header">
+      <h1 id="shopName"></h1>
+      <p class="tag">단골 적립</p>
+      <p class="guide" id="headerGuide">휴대폰 번호 뒤 4자리로 내 스탬프를 확인해요</p>
+    </header>
+
+    <!-- ===== 손님에게 보여주는 안내 (QR로 열었을 때) ===== -->
+    <!-- [고치는 곳] 아래 글자를 바꾸면 안내 문구가 바뀌어요. 개수와 보상 이름은 파일 맨 위 설정을 따라가요. -->
+    <section class="card guide-card info-only" id="infoCard">
+      <h2>이렇게 이용하세요</h2>
+      <ol>
+        <li>계산할 때 <b>휴대폰 번호 뒤 4자리</b>를 직원에게 말씀해 주세요.</li>
+        <li>직원이 <b>스탬프를 찍어</b> 드려요.</li>
+        <li><b id="infoGoal"></b>를 모으면 <b id="infoReward"></b>를 드려요!</li>
+      </ol>
+      <p class="ask">내 스탬프가 몇 개인지는<br>직원에게 물어보세요 🙂</p>
+    </section>
+
+    <!-- ===== 2. 번호 입력칸과 확인 버튼 ===== -->
+    <section class="card form lookup-only">
+      <label for="phoneInput">휴대폰 번호 뒤 4자리</label>
+      <input type="text" id="phoneInput" inputmode="numeric" pattern="[0-9]*"
+             maxlength="4" placeholder="0000" autocomplete="off">
+      <button type="button" class="btn" id="checkBtn">확인</button>
+      <p class="error" id="error" role="alert"></p>
+      <p class="demo-note" id="demoNote"></p>
+    </section>
+
+    <!-- ===== 3. 스탬프 카드 (확인을 누르면 나와요) ===== -->
+    <section class="card lookup-only" id="result" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <p class="w-title" id="welcomeTitle"></p>
+        <p class="w-sub" id="welcomeSub"></p>
+      </div>
+      <p class="count"><b id="countNum">0</b> / <span id="goalNum"></span> 개</p>
+      <div class="stamps" id="stamps"></div>
+      <p class="message" id="message"></p>
+    </section>
+
+    <!-- ===== 사장님 전용 (손님은 쓰지 않아요) ===== -->
+    <button type="button" class="owner-link" id="ownerLink">관리자</button>
+
+    <!-- 사장님 비밀번호 입력 -->
+    <section class="card form owner-box" id="ownerLogin">
+      <h2>관리자 확인</h2>
+      <label for="pinInput">비밀번호 4자리</label>
+      <input type="password" id="pinInput" inputmode="numeric" pattern="[0-9]*"
+             maxlength="4" placeholder="••••" autocomplete="off">
+      <button type="button" class="btn" id="pinBtn">들어가기</button>
+      <p class="error" id="pinError" role="alert"></p>
+    </section>
+
+    <!-- 사장님 화면: 스탬프 찍기, 백업 -->
+    <section class="card form owner-box" id="ownerPanel">
+      <h2>스탬프 관리</h2>
+
+      <label for="ownerNum">손님 휴대폰 번호 뒤 4자리</label>
+      <input type="text" id="ownerNum" inputmode="numeric" pattern="[0-9]*"
+             maxlength="4" placeholder="0000" autocomplete="off">
+      <button type="button" class="btn" id="findBtn">찾기</button>
+
+      <p class="owner-status" id="ownerStatus"></p>
+      <div class="btn-row">
+        <button type="button" class="btn" id="plusBtn" disabled>스탬프 +1</button>
+        <button type="button" class="btn light" id="minusBtn" disabled>스탬프 -1</button>
+      </div>
+      <button type="button" class="btn warn" id="useBtn" disabled>무료 음료 드렸어요 (0개로 되돌리기)</button>
+      <p class="owner-msg" id="ownerMsg" role="alert"></p>
+
+      <hr class="owner-sep">
+
+      <div class="btn-row">
+        <button type="button" class="btn light" id="backupBtn">백업 내려받기</button>
+        <button type="button" class="btn light" id="restoreBtn">백업 불러오기</button>
+      </div>
+      <input type="file" id="restoreFile" accept=".json,application/json">
+      <p class="owner-note">
+        스탬프 기록은 <b>이 기기 안에만</b> 저장돼요.<br>
+        기기를 바꾸거나 인터넷 기록을 지우면 사라질 수 있으니 가끔 백업해 두세요.<br>
+        백업 파일에는 손님 번호가 들어 있어요. 인터넷에 올리지 마세요.
+      </p>
+
+      <button type="button" class="btn light" id="leaveBtn">관리자 화면 나가기</button>
+    </section>
+
+    <!-- 개인정보 안내 (손님에게 어떤 정보를 저장하는지 알려줘요) -->
+    <!-- [고치는 곳] 안내 글자를 바꿔도 돼요. 구글 시트에 저장할 때는 이 안내를 꼭 남겨 두세요. -->
+    <p class="privacy" id="privacy">스탬프 적립을 위해 휴대폰 번호 뒤 4자리와 스탬프 개수를 저장해요.</p>
+
+  </div>
+
+  <!-- ===== 축하 화면 ===== -->
+  <div id="celebrate" role="dialog" aria-modal="true" aria-labelledby="celebrateTitle">
+    <div class="celebrate-card">
+      <div class="big">🎉</div>
+      <h2 id="celebrateTitle">축하해요!</h2>
+      <p><span id="celebrateGoal"></span>개를 모두 모았어요!</p>
+      <p><b id="celebrateReward"></b>를 받을 수 있어요.</p>
+      <p class="hint">이 화면을 직원에게 보여주세요.</p>
+      <button type="button" class="btn" id="closeBtn">닫기</button>
     </div>
   </div>
 
-  <!-- ============ 화면 1 : 번호 입력 ============ -->
-  <div class="화면 보임" id="화면-입력">
-    <div class="유리카드">
-      <label class="칸이름" for="번호칸">휴대폰 번호 뒷 4자리</label>
-      <div class="칸설명">번호 뒤쪽 네 자리만 넣어 주세요</div>
+  <script>
+    /* ===== 여기서부터는 화면을 움직이는 부분이에요 =====
+       고칠 것은 파일 맨 위의 '★ 고치는 곳'에 모아 두었어요. 아래는 건드리지 마세요. */
 
-      <input
-        type="text"
-        id="번호칸"
-        class="번호입력"
-        inputmode="numeric"
-        pattern="[0-9]*"
-        maxlength="4"
-        placeholder="예) 1234"
-        autocomplete="off"
-        autocorrect="off"
-        spellcheck="false">
+    const phoneInput = document.getElementById("phoneInput");
+    const errorEl = document.getElementById("error");
+    const resultEl = document.getElementById("result");
+    const stampsEl = document.getElementById("stamps");
+    const messageEl = document.getElementById("message");
+    const celebrateEl = document.getElementById("celebrate");
+    const checkBtn = document.getElementById("checkBtn");
 
-      <button class="큰버튼" id="확인버튼">확인</button>
+    // 가게 이름, 목표 개수, 연습용 안내 문구를 화면에 채워 넣어요
+    document.getElementById("shopName").textContent = SHOP_NAME;
+    document.title = SHOP_NAME + " 단골 적립";
+    document.getElementById("goalNum").textContent = STAMP_GOAL;
 
-      <div class="오류말" id="오류말"></div>
-    </div>
-
-    <div class="개인정보안내">
-      <div class="안내제목">🔒 손님 정보 안내</div>
-      <ul>
-        <li>전화번호 <b>전체가 아니라 뒷 4자리만</b> 사용해요.</li>
-        <li>이름·생년월일·주소는 <b>받지 않아요.</b></li>
-        <li>이 기기 안에만 저장되고, <b>인터넷으로 보내지 않아요.</b></li>
-        <li>지워 달라고 말씀하시면 <b>바로 지워 드려요.</b></li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- ============ 화면 2 : 이름 고르기 (번호가 겹칠 때만) ============ -->
-  <div class="화면" id="화면-이름고르기">
-    <div class="유리카드">
-      <div class="고르기제목">어느 분이신가요?</div>
-      <div class="고르기설명">
-        뒷 4자리가 같은 손님이 여러 분 계세요.<br>
-        본인 이름을 눌러 주세요.
-      </div>
-
-      <div id="이름목록"></div>
-
-      <button class="큰버튼 연한버튼" onclick="처음으로()">뒤로 가기</button>
-    </div>
-  </div>
-
-  <!-- ============ 화면 3 : 스탬프 보여 주기 ============ -->
-  <div class="화면" id="화면-스탬프">
-    <div class="유리카드">
-      <div class="손님이름" id="손님이름"></div>
-
-      <!-- 동그라미 10개가 여기에 들어갑니다 -->
-      <div class="스탬프판" id="스탬프판"></div>
-
-      <div class="모은개수말" id="모은개수말"></div>
-
-      <div class="진행막대">
-        <div class="채워진부분" id="채워진부분"></div>
-      </div>
-
-      <div class="남은개수말" id="남은개수말"></div>
-    </div>
-
-    <button class="큰버튼" id="다시확인버튼">🔄 새로 고쳐 보기</button>
-    <button class="큰버튼 연한버튼" onclick="처음으로()">다른 번호 조회하기</button>
-
-    <div class="맨아래말">
-      뒷 4자리와 스탬프 개수만 기록돼요. 이름은 저장하지 않습니다.
-    </div>
-  </div>
-
-  <!-- ============ 화면 4 : 축하 화면 (10개를 다 모았을 때) ============ -->
-  <div class="화면" id="화면-축하">
-    <div class="유리카드 축하카드">
-      <div class="축하아이콘">🎉</div>
-      <div class="축하제목" id="축하제목"></div>
-      <div class="축하설명">
-        무료 음료 한 잔을 드립니다
-      </div>
-
-      <!-- 쿠폰처럼 생긴 교환권 -->
-      <div class="교환권">
-        <div class="교환권이름">무료 음료 교환권</div>
-        <div class="교환권컵">🥤</div>
-        <div class="교환권점선"></div>
-        <div class="스탬프판" id="축하스탬프판"></div>
-        <div class="교환권개수">스탬프 10개를 모두 모았어요</div>
-      </div>
-
-      <div class="사장님안내">
-        👉 이 화면을<br>사장님께 보여 주세요
-      </div>
-
-      <div class="캡처안내">
-        화면을 캡처해 두셔도 괜찮아요.<br>
-        다만 무료 음료는 <b>브릿지 커피 매장에서만</b> 받으실 수 있어요.
-      </div>
-    </div>
-
-    <button class="큰버튼 연한버튼" onclick="처음으로()">다른 번호 조회하기</button>
-  </div>
-
-  <!-- 남은 시간 안내 (스탬프 화면과 축하 화면에서만 보입니다) -->
-  <div class="자동안내" id="자동안내"></div>
-
-</div>
-
-<script>
-/* ===================================================================
-   [가] 손님 정보 — 사장님 화면과 '같은 수첩'을 봅니다
-
-   사장님 화면(admin.html)이 스탬프를 적어 두는 수첩과
-   똑같은 수첩을 여기서도 펼쳐 봅니다.
-   그래서 사장님이 적립하면, 손님이 새로 고쳤을 때 바로 반영돼요.
-
-   ※ 두 파일을 같은 기기의 같은 브라우저로 열어야 합니다.
-   =================================================================== */
-
-var 저장이름_스탬프 = '브릿지커피_스탬프';   // 사장님 화면과 이름이 똑같아야 합니다
-var 스탬프총개수 = 10;                       // 무료 음료를 받는 데 필요한 개수
-
-/* 수첩을 통째로 펼쳐 봅니다 (예: { '1234': 3, '5678': 9 }) */
-function 스탬프전체불러오기() {
-  try {
-    var 글자 = localStorage.getItem(저장이름_스탬프);
-    if (!글자) return {};
-    var 전체 = JSON.parse(글자);
-    if (!전체 || typeof 전체 !== 'object') return {};
-    return 전체;
-  } catch (오류) {
-    return {};     // 수첩을 못 읽으면 빈 수첩으로 봅니다
-  }
-}
-
-/* 번호 하나의 스탬프 개수를 읽습니다 (없으면 0개) */
-function 개수읽기(번호) {
-  var 개수 = 스탬프전체불러오기()[번호];
-  if (typeof 개수 !== 'number' || 개수 < 0) return 0;
-  if (개수 > 스탬프총개수) return 스탬프총개수;
-  return Math.floor(개수);
-}
-
-/* 지금 화면에 띄워 둔 손님 (새로 고쳐 볼 때 씁니다) */
-var 지금보는번호 = '';
-var 지금보는개수 = -1;
-
-/* 사장님이 '손님 화면 되돌리기'를 누르면 여기에 신호를 남깁니다 */
-var 저장이름_되돌리기 = '브릿지커피_손님화면되돌리기';
-
-var 자동돌아가는시간 = 30;   // 몇 초 뒤에 첫 화면으로 돌아갈지 (초)
-
-/* -------------------------------------------------------------------
-   ※ 아래는 저장 기능을 붙이기 전에 쓰던 '화면 확인용 예시 명단'입니다.
-     지금은 진짜 수첩을 읽으므로 쓰지 않지만, 지우지 않고 남겨 두었어요.
-
-   var 손님목록 = {
-     '1234': [ { 이름: '김서연', 스탬프: 3 } ],
-     '5678': [ { 이름: '이준호', 스탬프: 9 } ],
-     '0000': [ { 이름: '박지우', 스탬프: 10 } ],
-     '7777': [
-       { 이름: '최민서', 스탬프: 5 },
-       { 이름: '정하윤', 스탬프: 1 }
-     ]
-   };
-   ------------------------------------------------------------------- */
-
-
-/* ===================================================================
-   [나] 화면 바꾸기
-   =================================================================== */
-
-function 화면보이기(화면이름) {
-  var 모든화면 = document.querySelectorAll('.화면');
-  for (var i = 0; i < 모든화면.length; i++) {
-    모든화면[i].classList.remove('보임');
-  }
-  document.getElementById(화면이름).classList.add('보임');
-  window.scrollTo(0, 0);
-}
-
-function 처음으로() {
-  심장박동멈추기();
-  색종이치우기();
-  지금보는번호 = '';
-  지금보는개수 = -1;
-  document.getElementById('번호칸').value = '';
-  오류숨기기();
-  화면보이기('화면-입력');
-}
-
-
-/* ===================================================================
-   [나-2] 1초에 한 번씩 뛰는 심장
-
-   스탬프 화면을 보고 있는 동안 1초마다 세 가지를 살핍니다.
-     ① 사장님이 '손님 화면 되돌리기'를 눌렀나?
-     ② 사장님이 방금 적립해 주셨나?
-     ③ 30초가 다 됐나?
-   =================================================================== */
-
-var 남은초   = 0;
-var 심장박동 = null;   // 1초마다 뛰는 시계
-var 본신호   = '';     // 화면을 열 때 확인해 둔 사장님 신호
-
-function 신호읽기() {
-  try {
-    return localStorage.getItem(저장이름_되돌리기) || '';
-  } catch (오류) {
-    return '';
-  }
-}
-
-function 심장박동시작() {
-  심장박동멈추기();
-  본신호 = 신호읽기();          // 지금 신호를 기억해 둡니다 (이게 바뀌면 되돌아갑니다)
-  남은초 = 자동돌아가는시간;
-  자동안내그리기();
-  심장박동 = setInterval(한번뛰기, 1000);
-}
-
-function 심장박동멈추기() {
-  if (심장박동) {
-    clearInterval(심장박동);
-    심장박동 = null;
-  }
-  document.getElementById('자동안내').classList.remove('보임');
-}
-
-/* 손님이 화면을 누르면 시간을 다시 30초로 늘려 줍니다 */
-function 시간늘리기() {
-  if (!심장박동) return;
-  남은초 = 자동돌아가는시간;
-  자동안내그리기();
-}
-
-function 한번뛰기() {
-
-  // ① 사장님이 되돌리기를 눌렀으면 바로 첫 화면으로
-  if (신호읽기() !== 본신호) {
-    처음으로();
-    return;
-  }
-
-  // ② 사장님이 적립·취소를 했으면 개수를 다시 그려 줍니다
-  if (지금보는번호) {
-    var 새개수 = 개수읽기(지금보는번호);
-    if (새개수 !== 지금보는개수) {
-      스탬프화면보이기({ 이름: '', 스탬프: 새개수 }, 지금보는번호);
-      return;                       // 화면을 다시 그리면서 시간도 새로 시작합니다
+    // ── 화면 종류 정하기
+    // 손님 화면: 안내만 / 사장님 휴대폰(관리자 화면에서 '손님 확인 화면 열기'로 들어옴): 번호 입력 화면
+    const LOOKUP_MODE = ALWAYS_SHOW_LOOKUP || new URLSearchParams(location.search).get("from") === "admin";
+    document.body.classList.toggle("info-mode", !LOOKUP_MODE);
+    document.getElementById("infoGoal").textContent = "스탬프 " + STAMP_GOAL + "개";
+    document.getElementById("infoReward").textContent = REWARD;
+    if (!LOOKUP_MODE) {
+      document.getElementById("headerGuide").textContent = "계산할 때 직원에게 말씀해 주세요";
     }
-  }
+    if (new URLSearchParams(location.search).get("from") === "admin") {
+      document.getElementById("backAdmin").classList.add("show");
+    }
+    // 개인정보 안내: 구글 시트를 쓰지 않을 때는 '가게 휴대폰에만 저장'이라고 알려줘요
+    if (!SHEET_URL) {
+      document.getElementById("privacy").textContent =
+        "스탬프 적립을 위해 휴대폰 번호 뒤 4자리와 스탬프 개수를 가게 직원의 휴대폰에만 저장해요. 다른 곳으로 보내지 않아요.";
+    }
+    if (SHOW_DEMO_NOTE && !SHEET_URL) {
+      document.getElementById("demoNote").textContent =
+        "연습 화면이에요 · 연습용 번호: " + Object.keys(SAMPLE_CUSTOMERS).join(", ");
+    }
 
-  // ③ 시간 줄이기
-  남은초 = 남은초 - 1;
-  if (남은초 <= 0) {
-    처음으로();
-    return;
-  }
-  자동안내그리기();
-}
+    // 숫자만 입력되게 (글자나 기호는 바로 지워요)
+    phoneInput.addEventListener("input", () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, "").slice(0, 4);
+      errorEl.textContent = "";
+      resultEl.classList.remove("show");   // 번호를 고치면 이전 결과는 숨겨요
+    });
 
-function 자동안내그리기() {
-  var 칸 = document.getElementById('자동안내');
-  칸.innerHTML =
-    '⏱ <b>' + 남은초 + '초</b> 뒤에 처음 화면으로 돌아가요<br>' +
-    '<span class="작은안내">더 보시려면 화면을 한 번 눌러 주세요</span>';
-  칸.classList.add('보임');
-}
+    // 스탬프 동그라미를 그려요 (모은 개수만큼 색이 채워져요)
+    function drawStamps(count) {
+      stampsEl.innerHTML = "";
+      for (let i = 1; i <= STAMP_GOAL; i++) {
+        const s = document.createElement("div");
+        s.className = "stamp" + (i <= count ? " filled" : "");
+        s.textContent = i <= count ? "✓" : i;
+        stampsEl.appendChild(s);
+      }
+    }
 
+    // 아래 안내 문구를 만들어요
+    function drawMessage(count) {
+      const left = STAMP_GOAL - count;
+      if (count === 0) {
+        messageEl.innerHTML = "첫 스탬프를 모아 보세요!<small>" + STAMP_GOAL + "개를 모으면 " + REWARD + "</small>";
+      } else if (left > 0) {
+        messageEl.textContent = count + "개 모았어요! " + left + "개 더 모으면 " + REWARD;
+      } else {
+        messageEl.textContent = STAMP_GOAL + "개를 다 모았어요! " + REWARD + "를 받을 수 있어요";
+      }
+    }
 
-/* ===================================================================
-   [다] 오류 안내 보이기 / 숨기기
-   =================================================================== */
+    // 떨어지는 색종이
+    function launchConfetti() {
+      const colors = ["#5E8B3F", "#C8E0B0", "#F5EFE6", "#E8B94A", "#E98B7A"];
+      for (let i = 0; i < 40; i++) {
+        const c = document.createElement("span");
+        c.className = "confetti";
+        c.style.left = Math.random() * 100 + "vw";
+        c.style.background = colors[i % colors.length];
+        c.style.animationDuration = (2.2 + Math.random() * 2) + "s";
+        c.style.animationDelay = Math.random() * 0.6 + "s";
+        document.body.appendChild(c);
+        setTimeout(() => c.remove(), 5500);
+      }
+    }
 
-function 오류보이기(글) {
-  var 칸 = document.getElementById('오류말');
-  칸.textContent = 글;
-  칸.classList.remove('보임');
-  void 칸.offsetWidth;          // 흔들리는 효과를 다시 실행시키기 위한 부분
-  칸.classList.add('보임');
-}
+    function showCelebrate() {
+      document.getElementById("celebrateGoal").textContent = STAMP_GOAL;
+      document.getElementById("celebrateReward").textContent = REWARD;
+      celebrateEl.classList.add("show");
+      launchConfetti();
+      document.getElementById("closeBtn").focus();
+    }
 
-function 오류숨기기() {
-  document.getElementById('오류말').classList.remove('보임');
-}
+    // 구글 시트에서 이 번호의 스탬프 개수를 물어봐요 (개수만 알려줘요)
+    async function askSheet(num) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 15000);   // 15초 안에 답이 없으면 포기
+      try {
+        const res = await fetch(SHEET_URL + "?action=get&num=" + encodeURIComponent(num), { signal: ctrl.signal });
+        return await res.json();
+      } finally {
+        clearTimeout(timer);
+      }
+    }
 
+    let checking = false;   // 확인하는 중이면 true (버튼을 연달아 눌러도 한 번만 물어봐요)
 
-/* ===================================================================
-   [라] 이름 가리기
-   김서연 → 김○연 처럼 가운데 글자를 가립니다.
-   본인은 알아볼 수 있고, 옆 사람에게는 이름이 다 보이지 않아요.
-   =================================================================== */
+    async function check() {
+      if (checking) return;
+      const num = phoneInput.value.trim();
+      if (num.length !== 4) {
+        errorEl.textContent = "번호 뒤 4자리를 모두 입력해 주세요.";
+        resultEl.classList.remove("show");
+        return;
+      }
+      errorEl.textContent = "";
 
-function 이름가리기(이름) {
-  if (이름.length <= 1) return 이름;
-  if (이름.length === 2) return 이름.charAt(0) + '○';
+      let count, isNew;
+      if (SHEET_URL) {
+        // ── 구글 시트 방식: 어느 휴대폰에서 봐도 같은 기록이 나와요
+        checking = true;
+        checkBtn.disabled = true;
+        checkBtn.textContent = "확인 중…";
+        try {
+          const r = await askSheet(num);
+          if (!r || !r.ok) throw new Error(r && r.error);
+          count = Math.min(Math.max(Math.floor(Number(r.count)) || 0, 0), STAMP_GOAL);
+          isNew = !!r.isNew;
+        } catch (e) {
+          errorEl.textContent = "연결이 안 돼요. 잠시 뒤에 다시 눌러 주세요.";
+          resultEl.classList.remove("show");
+          return;
+        } finally {
+          checking = false;
+          checkBtn.disabled = false;
+          checkBtn.textContent = "확인";
+        }
+        if (phoneInput.value.trim() !== num) return;   // 기다리는 사이 번호를 고쳤으면 그 결과는 버려요
+      } else {
+        // ── 이 기기에만 저장 방식 (연습용)
+        // 저장된 기록에서 개수를 찾아요 (없으면 0개)
+        // 예전 방식(연습용 목록만 읽기): const count = Math.min(Number(SAMPLE_CUSTOMERS[num]) || 0, STAMP_GOAL);
+        count = getCount(num);
+        // 처음 온 손님: 저장된 기록이 없고 스탬프도 0개일 때 환영 말풍선을 보여줘요
+        isNew = count === 0 && !hasKey(loadData(), num);
+      }
 
-  var 가운데 = '';
-  for (var i = 0; i < 이름.length - 2; i++) {
-    가운데 += '○';
-  }
-  return 이름.charAt(0) + 가운데 + 이름.charAt(이름.length - 1);
-}
+      document.getElementById("welcomeTitle").textContent = WELCOME_TITLE;
+      document.getElementById("welcomeSub").textContent = WELCOME_SUB;
+      document.getElementById("welcome").classList.toggle("show", isNew);
 
+      document.getElementById("countNum").textContent = count;
+      drawStamps(count);
+      drawMessage(count);
+      resultEl.classList.add("show");
+      resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
 
-/* ===================================================================
-   [마] 확인 버튼을 눌렀을 때
-   =================================================================== */
+      if (count >= STAMP_GOAL) showCelebrate();
+    }
 
-function 번호확인하기() {
-  var 넣은번호 = document.getElementById('번호칸').value.trim();
+    document.getElementById("checkBtn").addEventListener("click", check);
+    phoneInput.addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+    document.getElementById("closeBtn").addEventListener("click", () => celebrateEl.classList.remove("show"));
+    // 축하 화면의 어두운 바깥을 눌러도 닫혀요
+    celebrateEl.addEventListener("click", e => { if (e.target === celebrateEl) celebrateEl.classList.remove("show"); });
 
-  // 숫자 4자리가 맞는지 살펴봅니다
-  if (넣은번호.length === 0) {
-    오류보이기('휴대폰 번호 뒷 4자리를 넣어 주세요.');
-    return;
-  }
-  if (!/^[0-9]{4}$/.test(넣은번호)) {
-    오류보이기('숫자 4자리로 넣어 주세요. (예: 1234)');
-    return;
-  }
+    /* ==========================================================================
+       저장하기 (이 기기 안에만 저장돼요)
+       저장 모양:  { "1234": 3, "5678": 10 }   ← 뒤 4자리와 스탬프 개수만!
+       ========================================================================== */
 
-  오류숨기기();
+    function loadData() {
+      try {
+        const text = localStorage.getItem(STORAGE_KEY);
+        const obj = text ? JSON.parse(text) : {};
+        return (obj && typeof obj === "object" && !Array.isArray(obj)) ? obj : {};
+      } catch (e) { return {}; }
+    }
 
-  // 수첩에서 이 번호의 스탬프 개수를 읽어 옵니다.
-  // 수첩에 없는 번호(처음 오신 손님)는 저절로 0개가 됩니다.
-  스탬프화면보이기({ 이름: '', 스탬프: 개수읽기(넣은번호) }, 넣은번호);
-}
+    // 저장에 성공하면 true, 실패하면 false
+    function saveData(obj) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); return true; }
+      catch (e) { return false; }
+    }
 
+    function clampCount(n) {
+      n = Math.floor(Number(n));
+      if (!(n > 0)) return 0;
+      return Math.min(n, STAMP_GOAL);
+    }
 
-/* ===================================================================
-   [바] 이름 고르기 화면 만들기
-   =================================================================== */
+    const hasKey = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
 
-function 이름고르기화면보이기(손님들, 번호) {
-  var 목록칸 = document.getElementById('이름목록');
-  목록칸.innerHTML = '';
+    // 손님 번호의 스탬프 개수 찾기: ① 사장님이 찍은 기록 → ② 연습용 예시 → ③ 0개
+    function getCount(num) {
+      const data = loadData();
+      if (hasKey(data, num)) return clampCount(data[num]);
+      if (SHOW_DEMO_NOTE && hasKey(SAMPLE_CUSTOMERS, num)) return clampCount(SAMPLE_CUSTOMERS[num]);
+      return 0;
+    }
 
-  for (var i = 0; i < 손님들.length; i++) {
-    (function (손님) {
-      var 버튼 = document.createElement('button');
-      버튼.className = '이름버튼';
-      버튼.textContent = 이름가리기(손님.이름) + ' 님';
-      버튼.onclick = function () {
-        스탬프화면보이기(손님, 번호);
+    function setCount(num, n) {
+      const data = loadData();
+      data[num] = clampCount(n);
+      return saveData(data);
+    }
+
+    // 기기가 '저장 공간을 함부로 지우지 않게' 부탁해 봐요 (안 되는 기기도 있어요)
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+
+    /* ==========================================================================
+       사장님 화면
+       ========================================================================== */
+
+    const ownerLink = document.getElementById("ownerLink");
+    // 입구 숨기기 (기능은 그대로 남겨둬요). 구글 시트를 쓸 때는 항상 숨겨요. (스탬프는 admin.html 에서 찍어요)
+    ownerLink.style.display = (SHOW_OWNER_LINK && !SHEET_URL) ? "" : "none";
+    const ownerLogin = document.getElementById("ownerLogin");
+    const ownerPanel = document.getElementById("ownerPanel");
+    const pinInput = document.getElementById("pinInput");
+    const pinError = document.getElementById("pinError");
+    const ownerNum = document.getElementById("ownerNum");
+    const ownerStatus = document.getElementById("ownerStatus");
+    const ownerMsg = document.getElementById("ownerMsg");
+    const plusBtn = document.getElementById("plusBtn");
+    const minusBtn = document.getElementById("minusBtn");
+    const useBtn = document.getElementById("useBtn");
+    const restoreFile = document.getElementById("restoreFile");
+
+    let currentNum = "";        // 지금 보고 있는 손님 번호
+    let pinFails = 0;           // 비밀번호 틀린 횟수
+    let lockedUntil = 0;        // 이 시각까지는 잠금
+
+    function ownerSay(text, bad) {
+      ownerMsg.textContent = text;
+      ownerMsg.classList.toggle("bad", !!bad);
+    }
+
+    function setButtons(on) {
+      plusBtn.disabled = minusBtn.disabled = useBtn.disabled = !on;
+    }
+
+    // 사장님 버튼 누르면 비밀번호 칸이 열려요 (다시 누르면 닫혀요)
+    ownerLink.addEventListener("click", () => {
+      if (ownerPanel.classList.contains("show")) return;   // 이미 들어와 있으면 그대로
+      ownerLogin.classList.toggle("show");
+      if (ownerLogin.classList.contains("show")) {
+        pinInput.value = "";
+        pinError.textContent = "";
+        pinInput.focus();
+        ownerLogin.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+
+    pinInput.addEventListener("input", () => {
+      pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
+      pinError.textContent = "";
+    });
+
+    function tryLogin() {
+      const now = Date.now();
+      if (now < lockedUntil) {
+        pinError.textContent = Math.ceil((lockedUntil - now) / 1000) + "초 뒤에 다시 해 주세요.";
+        return;
+      }
+      if (pinInput.value === OWNER_PIN) {
+        pinFails = 0;
+        pinInput.value = "";
+        ownerLogin.classList.remove("show");
+        ownerPanel.classList.add("show");
+        ownerNum.value = "";
+        ownerStatus.textContent = "";
+        ownerSay("", false);
+        setButtons(false);
+        ownerNum.focus();
+        ownerPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        // 이 기기에 저장이 되는지 미리 확인해서 알려줘요
+        if (!saveData(loadData())) {
+          ownerSay("이 기기에서는 저장이 안 돼요. (사생활 보호 모드를 꺼 주세요)", true);
+        }
+      } else {
+        pinFails++;
+        pinInput.value = "";
+        if (pinFails >= 5) {
+          lockedUntil = now + 30000;   // 5번 틀리면 30초 잠금
+          pinFails = 0;
+          pinError.textContent = "5번 틀렸어요. 30초 뒤에 다시 해 주세요.";
+        } else {
+          pinError.textContent = "비밀번호가 맞지 않아요.";
+        }
+      }
+    }
+
+    document.getElementById("pinBtn").addEventListener("click", tryLogin);
+    pinInput.addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
+
+    // 사장님 화면 나가기: 화면을 닫고 입력한 번호도 지워요
+    function leaveOwner() {
+      ownerPanel.classList.remove("show");
+      ownerLogin.classList.remove("show");
+      ownerNum.value = "";
+      currentNum = "";
+      ownerStatus.textContent = "";
+      ownerSay("", false);
+      setButtons(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    document.getElementById("leaveBtn").addEventListener("click", leaveOwner);
+
+    // 손님 찾기
+    ownerNum.addEventListener("input", () => {
+      ownerNum.value = ownerNum.value.replace(/\D/g, "").slice(0, 4);
+      ownerStatus.textContent = "";
+      ownerSay("", false);
+      setButtons(false);
+      currentNum = "";
+    });
+
+    function showOwnerCount() {
+      const n = getCount(currentNum);
+      ownerStatus.textContent = currentNum + " 손님: " + n + " / " + STAMP_GOAL + "개";
+      plusBtn.disabled = n >= STAMP_GOAL;
+      minusBtn.disabled = n <= 0;
+      useBtn.disabled = n <= 0;
+      return n;
+    }
+
+    function findCustomer() {
+      const num = ownerNum.value.trim();
+      if (num.length !== 4) { ownerSay("번호 뒤 4자리를 모두 입력해 주세요.", true); return; }
+      currentNum = num;
+      ownerSay("", false);
+      const n = showOwnerCount();
+      if (n >= STAMP_GOAL) ownerSay("10개를 다 모았어요! 음료를 드린 뒤 아래 빨간 버튼을 눌러 주세요.", false);
+    }
+    document.getElementById("findBtn").addEventListener("click", findCustomer);
+    ownerNum.addEventListener("keydown", e => { if (e.key === "Enter") findCustomer(); });
+
+    // 스탬프 +1
+    plusBtn.addEventListener("click", () => {
+      if (!currentNum) return;
+      const n = getCount(currentNum);
+      if (n >= STAMP_GOAL) return;
+      if (!setCount(currentNum, n + 1)) { ownerSay("저장에 실패했어요. 다시 시도해 주세요.", true); return; }
+      const now = showOwnerCount();
+      ownerSay(now >= STAMP_GOAL ? "10개 완성! 축하해 주세요 🎉" : "스탬프를 찍었어요.", false);
+    });
+
+    // 스탬프 -1 (잘못 찍었을 때)
+    minusBtn.addEventListener("click", () => {
+      if (!currentNum) return;
+      const n = getCount(currentNum);
+      if (n <= 0) return;
+      if (!setCount(currentNum, n - 1)) { ownerSay("저장에 실패했어요. 다시 시도해 주세요.", true); return; }
+      showOwnerCount();
+      ownerSay("스탬프를 하나 뺐어요.", false);
+    });
+
+    // 무료 음료를 드린 뒤 0개로 되돌리기
+    useBtn.addEventListener("click", () => {
+      if (!currentNum) return;
+      if (!confirm(currentNum + " 손님의 스탬프를 0개로 되돌릴까요?\n(" + REWARD + "를 드린 뒤에 눌러 주세요)")) return;
+      if (!setCount(currentNum, 0)) { ownerSay("저장에 실패했어요. 다시 시도해 주세요.", true); return; }
+      showOwnerCount();
+      ownerSay("0개로 되돌렸어요.", false);
+    });
+
+    /* ----- 백업 내려받기 / 불러오기 ----- */
+    document.getElementById("backupBtn").addEventListener("click", () => {
+      const text = JSON.stringify({ shop: SHOP_NAME, data: loadData() }, null, 2);
+      const blob = new Blob([text], { type: "application/json" });
+      const a = document.createElement("a");
+      const d = new Date();
+      const pad = v => String(v).padStart(2, "0");
+      a.href = URL.createObjectURL(blob);
+      a.download = SHOP_NAME + "-스탬프백업-" + d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+      ownerSay("백업 파일을 내려받았어요. 안전한 곳에 보관하세요.", false);
+    });
+
+    document.getElementById("restoreBtn").addEventListener("click", () => restoreFile.click());
+
+    restoreFile.addEventListener("change", () => {
+      const file = restoreFile.files[0];
+      restoreFile.value = "";
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const obj = JSON.parse(reader.result);
+          const src = obj && obj.data;
+          if (!src || typeof src !== "object" || Array.isArray(src)) throw new Error("모양이 달라요");
+          const clean = {};
+          for (const key of Object.keys(src)) {
+            if (/^\d{4}$/.test(key)) clean[key] = clampCount(src[key]);   // 4자리 숫자만 받아요
+          }
+          const howMany = Object.keys(clean).length;
+          if (!confirm("백업 파일의 손님 " + howMany + "명 기록으로 바꿀까요?\n(지금 저장된 기록은 사라져요)")) return;
+          if (!saveData(clean)) throw new Error("저장 실패");
+          currentNum = "";
+          ownerStatus.textContent = "";
+          setButtons(false);
+          ownerSay("백업을 불러왔어요. (" + howMany + "명)", false);
+        } catch (e) {
+          ownerSay("백업 파일을 읽을 수 없어요. 맞는 파일인지 확인해 주세요.", true);
+        }
       };
-      목록칸.appendChild(버튼);
-    })(손님들[i]);
-  }
-
-  화면보이기('화면-이름고르기');
-}
-
-
-/* ===================================================================
-   [사] 동그라미 10개 그리기
-   =================================================================== */
-
-function 스탬프판그리기(판, 모은개수) {
-  판.innerHTML = '';
-
-  for (var i = 0; i < 스탬프총개수; i++) {
-    var 칸 = document.createElement('div');
-
-    if (i < 모은개수) {
-      // 이미 모은 스탬프 — 색이 꽉 찬 동그라미
-      칸.className = '동그라미 채움';
-      칸.textContent = '☕';
-      칸.style.animationDelay = (i * 0.07) + 's';   // 하나씩 차례로 톡톡 나타납니다
-    } else {
-      // 아직 안 모은 스탬프 — 빈 동그라미
-      칸.className = '동그라미 빈칸';
-      칸.textContent = (i + 1);
-    }
-
-    판.appendChild(칸);
-  }
-}
-
-
-/* ===================================================================
-   [아] 스탬프 화면 보여 주기
-   =================================================================== */
-
-function 스탬프화면보이기(손님, 번호) {
-
-  // 지금 누구 화면을 보고 있는지 기억해 둡니다 (새로 고쳐 볼 때 씁니다)
-  지금보는번호 = 번호;
-  지금보는개수 = 손님.스탬프;
-
-  // 10개를 다 모았으면 축하 화면으로
-  if (손님.스탬프 >= 스탬프총개수) {
-    축하화면보이기(손님);
-    return;
-  }
-
-  var 모은개수 = 손님.스탬프;
-  var 남은개수 = 스탬프총개수 - 모은개수;
-
-  // 손님 이름 (이름을 모르면 번호로 인사합니다)
-  var 이름칸 = document.getElementById('손님이름');
-  if (손님.이름) {
-    이름칸.innerHTML = 이름가리기(손님.이름) + ' 님의 스탬프<br>' +
-                       '<span class="작은글씨">뒷번호 ' + 번호 + '</span>';
-  } else if (모은개수 === 0) {
-    이름칸.innerHTML = '뒷번호 ' + 번호 + ' 님의 스탬프<br>' +
-                       '<span class="작은글씨">반가워요! 첫 스탬프를 모아 보세요</span>';
-  } else {
-    이름칸.innerHTML = '뒷번호 ' + 번호 + ' 님의 스탬프<br>' +
-                       '<span class="작은글씨">오늘도 반가워요!</span>';
-  }
-
-  // 동그라미 그리기
-  스탬프판그리기(document.getElementById('스탬프판'), 모은개수);
-
-  // 안내 문구
-  var 개수말 = document.getElementById('모은개수말');
-  var 남은말 = document.getElementById('남은개수말');
-
-  if (모은개수 === 0) {
-    개수말.innerHTML = '아직 모은 스탬프가 없어요';
-    남은말.innerHTML = '10개를 모으면 <b>무료 음료</b> 한 잔을 드려요!';
-  } else {
-    개수말.innerHTML = '<span class="강조">' + 모은개수 + '개</span> 모았어요!';
-    남은말.innerHTML = '<b>' + 남은개수 + '개</b> 더 모으면 <b>무료 음료</b>를 드려요';
-  }
-
-  // 진행 막대 채우기
-  var 막대 = document.getElementById('채워진부분');
-  막대.style.width = '0%';
-  setTimeout(function () {
-    막대.style.width = (모은개수 / 스탬프총개수 * 100) + '%';
-  }, 100);
-
-  화면보이기('화면-스탬프');
-  심장박동시작();
-}
-
-
-/* ===================================================================
-   [자] 축하 화면 보여 주기
-   =================================================================== */
-
-function 축하화면보이기(손님) {
-  var 제목 = document.getElementById('축하제목');
-
-  if (손님.이름) {
-    제목.innerHTML = 이름가리기(손님.이름) + ' 님,<br>축하합니다!';
-  } else {
-    제목.innerHTML = '축하합니다!';
-  }
-
-  스탬프판그리기(document.getElementById('축하스탬프판'), 스탬프총개수);
-
-  화면보이기('화면-축하');
-  색종이뿌리기();
-  심장박동시작();
-}
-
-
-/* ===================================================================
-   [차] 축하 색종이 뿌리기
-   =================================================================== */
-
-var 색종이들 = [];
-
-function 색종이뿌리기() {
-  색종이치우기();
-
-  var 색깔 = ['#ffd9a0', '#fff3e0', '#f0a868', '#ffffff', '#ffc46b'];
-
-  // 20조각만 천천히 떨어뜨립니다 (너무 화려하지 않게)
-  for (var i = 0; i < 20; i++) {
-    var 조각 = document.createElement('div');
-    조각.className = '색종이';
-    조각.style.left = (Math.random() * 100) + 'vw';
-    조각.style.background = 색깔[Math.floor(Math.random() * 색깔.length)];
-    조각.style.animationDuration = (3.5 + Math.random() * 2) + 's';
-    조각.style.animationDelay = (Math.random() * 2) + 's';
-    조각.style.borderRadius = (Math.random() > 0.5) ? '50%' : '2px';
-
-    document.body.appendChild(조각);
-    색종이들.push(조각);
-  }
-
-  // 8초 뒤에 저절로 치웁니다 (계속 흩날리면 눈이 피로해요)
-  setTimeout(색종이치우기, 8000);
-}
-
-function 색종이치우기() {
-  for (var i = 0; i < 색종이들.length; i++) {
-    if (색종이들[i].parentNode) {
-      색종이들[i].parentNode.removeChild(색종이들[i]);
-    }
-  }
-  색종이들 = [];
-}
-
-
-/* ===================================================================
-   [카] 버튼과 키보드 연결하기
-   =================================================================== */
-
-document.getElementById('확인버튼').onclick = 번호확인하기;
-
-var 번호칸 = document.getElementById('번호칸');
-
-// 숫자가 아닌 글자는 자동으로 지웁니다
-번호칸.oninput = function () {
-  this.value = this.value.replace(/[^0-9]/g, '');
-  오류숨기기();
-};
-
-// 키보드에서 엔터를 눌러도 확인이 되게 합니다
-번호칸.onkeydown = function (사건) {
-  if (사건.key === 'Enter') {
-    번호확인하기();
-  }
-};
-
-
-/* ===================================================================
-   [타] 새로 고쳐 보기
-
-   사장님이 방금 적립해 주셨을 때, 번호를 다시 넣지 않고
-   이 버튼만 눌러도 지금 개수를 다시 읽어 옵니다.
-   =================================================================== */
-
-document.getElementById('다시확인버튼').onclick = function () {
-  if (!지금보는번호) return;
-  스탬프화면보이기({ 이름: '', 스탬프: 개수읽기(지금보는번호) }, 지금보는번호);
-};
-
-/* 사장님 화면을 다른 탭에서 열어 두었다면,
-   적립하는 순간 이 화면도 저절로 바뀝니다.
-   (기기에 따라 안 될 수도 있어서, 위의 새로 고침 버튼이 확실한 방법이에요) */
-window.addEventListener('storage', function (사건) {
-  if (사건.key && 사건.key !== 저장이름_스탬프) return;
-  if (!지금보는번호) return;
-
-  var 새개수 = 개수읽기(지금보는번호);
-  if (새개수 === 지금보는개수) return;      // 바뀐 게 없으면 그냥 둡니다
-
-  스탬프화면보이기({ 이름: '', 스탬프: 새개수 }, 지금보는번호);
-});
-
-/* 손님이 화면 아무 곳이나 누르면 남은 시간이 다시 30초로 늘어납니다.
-   (천천히 보시는 손님이 화면을 뺏기지 않도록) */
-document.addEventListener('click', 시간늘리기);
-document.addEventListener('touchstart', 시간늘리기);
-</script>
-
+      reader.onerror = () => ownerSay("파일을 읽지 못했어요.", true);
+      reader.readAsText(file);
+    });
+  </script>
 </body>
 </html>
